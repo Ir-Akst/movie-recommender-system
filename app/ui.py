@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 # ENV
 # =========================
 load_dotenv()
-API_BASE = os.getenv("API_BASE", "http://localhost:8000")
+API_BASE = os.getenv(
+    "API_BASE",
+    "https://your-render-backend.onrender.com"
+)
 TMDB_IMG = "https://image.tmdb.org/t/p/w342"
 
 # =========================
