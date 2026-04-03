@@ -13,15 +13,6 @@ TMDB_IMG = "https://image.tmdb.org/t/p/w342"
 st.set_page_config(page_title="AI Movie Recommender", layout="wide")
 
 # =========================
-# SESSION STATE
-# =========================
-if "selected_movie" not in st.session_state:
-    st.session_state.selected_movie = None
-
-if "show_dashboard" not in st.session_state:
-    st.session_state.show_dashboard = False
-
-# =========================
 # 🎨 CUSTOM CSS
 # =========================
 st.markdown("""
@@ -105,9 +96,17 @@ def api_get(path, params=None):
 
 def api_post(path, movie):
     try:
-        requests.post(f"{API_BASE}{path}", params={"movie": movie}, timeout=10)
+        requests.post(f"{API_BASE}{path}", params={
+            "movie": movie
+        }, timeout=10)
     except:
         pass
+
+# =========================
+# SESSION STATE
+# =========================
+if "selected_movie" not in st.session_state:
+    st.session_state.selected_movie = None
 
 # =========================
 # 🎬 MOVIE GRID
@@ -122,28 +121,32 @@ def poster_grid(movies, cols=5):
 
         for col, m in zip(row, movies[i:i+cols]):
             with col:
+
                 st.markdown('<div class="movie-card">', unsafe_allow_html=True)
 
+                # Poster
                 if m.get("poster_url"):
                     st.markdown(
                         f'<img class="movie-img" src="{m["poster_url"]}">',
                         unsafe_allow_html=True
                     )
 
+                # Title
                 st.markdown(
                     f'<div class="movie-title">{m["title"]}</div>',
                     unsafe_allow_html=True
                 )
 
+                # Buttons
                 c1, c2 = st.columns(2)
 
-                # 🔖 Watchlist
+                # 🔖 WATCHLIST
                 with c1:
                     if st.button("🔖", key=f"watch_{m['tmdb_id']}"):
                         api_post("/user/watchlist", m["title"])
                         st.toast("Added to Watchlist")
 
-                # ❤️ Like
+                # ❤️ LIKE
                 with c2:
                     if st.button("❤️", key=f"like_{m['tmdb_id']}"):
                         api_post("/user/like", m["title"])
@@ -151,48 +154,7 @@ def poster_grid(movies, cols=5):
                 st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
-# 📊 DASHBOARD
-# =========================
-def show_dashboard():
-    if st.button("← Back"):
-        st.session_state.show_dashboard = False
-        return
-
-    st.title("📊 My Dashboard")
-
-    watchlist = api_get("/user/watchlist") or []
-    liked = api_get("/user/liked") or []
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("🔖 Watchlist")
-        if watchlist:
-            for movie in watchlist:
-                st.markdown(f"""
-                <div style="background:rgba(255,255,255,0.05);
-                padding:10px;border-radius:10px;margin-bottom:8px;">
-                🎬 {movie}
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info("No movies yet")
-
-    with col2:
-        st.subheader("❤️ Liked")
-        if liked:
-            for movie in liked:
-                st.markdown(f"""
-                <div style="background:rgba(255,255,255,0.05);
-                padding:10px;border-radius:10px;margin-bottom:8px;">
-                🎬 {movie}
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info("No liked movies")
-
-# =========================
-# HOME
+# HOME PAGE
 # =========================
 def show_home():
     with st.sidebar:
@@ -203,8 +165,13 @@ def show_home():
             ["popular", "top_rated", "now_playing", "upcoming"]
         )
 
-        if st.button("📊 My Dashboard"):
-            st.session_state.show_dashboard = True
+        if st.button("📌 Watchlist"):
+            data = api_get("/user/watchlist")
+            st.write(data if data else "Empty")
+
+        if st.button("❤️ Liked"):
+            data = api_get("/user/liked")
+            st.write(data if data else "Empty")
 
     query = st.text_input("🔍 Search movie")
 
@@ -233,7 +200,7 @@ def show_home():
         st.error("Failed to load movies")
 
 # =========================
-# DETAILS
+# DETAILS PAGE
 # =========================
 def show_details(movie_id):
     if st.button("← Back"):
@@ -259,13 +226,17 @@ def show_details(movie_id):
     st.divider()
     st.subheader("🎯 Recommended for you")
 
-    bundle = api_get("/movie/search", {"query": data["title"])
+    bundle = api_get("/movie/search", {"query": data["title"]})
 
     if bundle:
         recs = bundle.get("tfidf_recommendations", [])
 
         movies = [
-            {"tmdb_id": i, "title": r["title"], "poster_url": None}
+            {
+                "tmdb_id": i,
+                "title": r["title"],
+                "poster_url": None
+            }
             for i, r in enumerate(recs)
         ]
 
@@ -274,9 +245,7 @@ def show_details(movie_id):
 # =========================
 # ROUTING
 # =========================
-if st.session_state.show_dashboard:
-    show_dashboard()
-elif st.session_state.selected_movie:
+if st.session_state.selected_movie:
     show_details(st.session_state.selected_movie)
 else:
     show_home()
