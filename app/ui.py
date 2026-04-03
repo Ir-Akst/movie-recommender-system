@@ -1,20 +1,11 @@
 import requests
 import streamlit as st
-import uuid
 
 # =========================
 # CONFIG
 # =========================
 API_BASE = "https://movie-recommender-system-1-2kes.onrender.com"
 TMDB_IMG = "https://image.tmdb.org/t/p/w342"
-
-# =========================
-# USER SESSION
-# =========================
-if "user_id" not in st.session_state:
-    st.session_state.user_id = str(uuid.uuid4())
-
-USER_ID = st.session_state.user_id
 
 # =========================
 # PAGE CONFIG
@@ -106,7 +97,6 @@ def api_get(path, params=None):
 def api_post(path, movie):
     try:
         requests.post(f"{API_BASE}{path}", params={
-            "user_id": USER_ID,
             "movie": movie
         }, timeout=10)
     except:
@@ -148,8 +138,7 @@ def poster_grid(movies, cols=5):
                 )
 
                 # Buttons
-                c1, c2= st.columns(2)
-                
+                c1, c2 = st.columns(2)
 
                 # 🔖 WATCHLIST
                 with c1:
@@ -169,7 +158,6 @@ def poster_grid(movies, cols=5):
 # =========================
 def show_home():
     with st.sidebar:
-        st.write(f"👤 User: {USER_ID[:8]}")
         st.divider()
 
         category = st.selectbox(
@@ -178,7 +166,11 @@ def show_home():
         )
 
         if st.button("📌 Watchlist"):
-            data = api_get("/user/watchlist", {"user_id": USER_ID})
+            data = api_get("/user/watchlist")
+            st.write(data if data else "Empty")
+
+        if st.button("❤️ Liked"):
+            data = api_get("/user/liked")
             st.write(data if data else "Empty")
 
     query = st.text_input("🔍 Search movie")
