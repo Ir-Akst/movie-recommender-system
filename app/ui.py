@@ -16,6 +16,9 @@ if "user_id" not in st.session_state:
 
 USER_ID = st.session_state.user_id
 
+if "selected_movie" not in st.session_state:
+    st.session_state.selected_movie = None
+
 # =========================
 # PAGE CONFIG
 # =========================
@@ -31,7 +34,6 @@ st.markdown("""
     color: white;
 }
 
-/* Header */
 .title {
     text-align: center;
     font-size: 42px;
@@ -43,7 +45,7 @@ st.markdown("""
     margin-bottom: 20px;
 }
 
-/* Scroll Row */
+/* Scroll row */
 .scroll-row {
     display: flex;
     overflow-x: auto;
@@ -60,27 +62,15 @@ st.markdown("""
 
 /* Poster */
 .poster {
+    width: 100%;
     border-radius: 10px;
 }
 
-/* Rating badge */
-.rating {
-    position: absolute;
-    background: #facc15;
-    color: black;
-    padding: 3px 6px;
+/* Buttons */
+.stButton>button {
+    border-radius: 8px;
+    padding: 4px;
     font-size: 12px;
-    border-radius: 5px;
-    margin: 5px;
-}
-
-/* Hide scrollbar */
-::-webkit-scrollbar {
-    height: 6px;
-}
-::-webkit-scrollbar-thumb {
-    background: #555;
-    border-radius: 10px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -112,7 +102,7 @@ def api_post(path, movie):
         pass
 
 # =========================
-# HERO SECTION
+# HERO
 # =========================
 def hero(movie):
     if not movie:
@@ -120,7 +110,7 @@ def hero(movie):
 
     st.markdown(f"""
     <div style="
-        background-image: linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.2)),
+        background-image: linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0.3)),
         url('{movie.get("poster_url","")}');
         background-size: cover;
         border-radius: 16px;
@@ -133,7 +123,7 @@ def hero(movie):
     """, unsafe_allow_html=True)
 
 # =========================
-# HORIZONTAL SCROLL
+# SCROLL ROW
 # =========================
 def scroll_row(title, movies):
     st.markdown(f"## {title}")
@@ -150,8 +140,29 @@ def scroll_row(title, movies):
 
     st.markdown(html, unsafe_allow_html=True)
 
+    # Buttons (below row)
+    for m in movies[:10]:
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            if st.button(f"🎬 {m['title'][:8]}", key=f"view_{m['tmdb_id']}"):
+                api_post("/user/view", m["title"])
+                st.session_state.selected_movie = m["tmdb_id"]
+
+        with col2:
+            if st.button("⭐", key=f"watch_{m['tmdb_id']}"):
+                api_post("/user/watchlist", m["title"])
+
+        with col3:
+            if st.button("👍", key=f"like_{m['tmdb_id']}"):
+                api_post("/user/like", m["title"])
+
+        with col4:
+            if st.button("👎", key=f"dislike_{m['tmdb_id']}"):
+                api_post("/user/dislike", m["title"])
+
 # =========================
-# MAIN HOME
+# HOME PAGE
 # =========================
 def show_home():
     with st.sidebar:
@@ -161,7 +172,24 @@ def show_home():
             data = api_get("/user/watchlist", {"user_id": USER_ID})
             st.write(data if data else "Empty")
 
-    # Fetch data
+    query = st.text_input("🔍 Search movie...")
+
+    if query:
+        data = api_get("/tmdb/search", {"query": query})
+        if data:
+            movies = [
+                {
+                    "tmdb_id": m["id"],
+                    "title": m["title"],
+                    "poster_url": f"{TMDB_IMG}{m['poster_path']}"
+                    if m.get("poster_path") else None,
+                }
+                for m in data.get("results", [])[:12]
+            ]
+            scroll_row("🔍 Results", movies)
+        return
+
+    # Fetch sections
     popular = api_get("/home", {"category": "popular", "limit": 15})
     top = api_get("/home", {"category": "top_rated", "limit": 15})
     upcoming = api_get("/home", {"category": "upcoming", "limit": 15})
@@ -169,7 +197,6 @@ def show_home():
     if popular:
         hero(popular[0])
 
-    # Sections
     if popular:
         scroll_row("🔥 Popular", popular)
 
@@ -180,6 +207,48 @@ def show_home():
         scroll_row("🎬 Upcoming", upcoming)
 
 # =========================
-# RUN
+# DETAILS PAGE
 # =========================
-show_home()
+def show_details(movie_id):
+    if st.button("← Back"):
+        st.session_state.selected_movie = None
+        return
+
+    data = api_get(f"/movie/id/{movie_id}")
+
+    if not data:
+        st.error("Failed to load")
+        return
+
+    col1, col2 = st.columns([1,2])
+
+    with col1:
+        if data.get("poster_url"):
+            st.image(data["poster_url"])
+
+    with col2:
+        st.title(data["title"])
+        st.write(data.get("overview"))
+
+    st.divider()
+    st.subheader("🎯 Recommendations")
+
+    bundle = api_get("/movie/search", {"query": data["title"]})
+
+    if bundle:
+        recs = bundle.get("tfidf_recommendations", [])
+
+        movies = [
+            {"tmdb_id": i, "title": r["title"], "poster_url": None}
+            for i, r in enumerate(recs)
+        ]
+
+        scroll_row("Recommended", movies)
+
+# =========================
+# ROUTING
+# =========================
+if st.session_state.selected_movie:
+    show_details(st.session_state.selected_movie)
+else:
+    show_home()
