@@ -236,7 +236,23 @@ async def home(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+user_data = {}
+@app.post("/user/watchlist")
+def add_watchlist(user_id: str, movie: str):
+    if user_id not in user_data:
+        user_data[user_id] = {"watchlist": []}
+    
+    user_data[user_id]["watchlist"].append(movie)
+    return {"status": "added"}
 
+@app.post("/user/like")
+def like_movie(user_id: str, movie: str):
+    user_data.setdefault(user_id, {}).setdefault("liked", []).append(movie)
+    return {"status": "liked"}
+@app.post("/user/view")
+def view_movie(user_id: str, movie: str):
+    user_data.setdefault(user_id, {}).setdefault("recent", []).append(movie)
+    return {"status": "viewed"}
 
 # 🔥 SEARCH ROUTE (REQUIRED FOR UI)
 @app.get("/tmdb/search")
