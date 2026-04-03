@@ -148,22 +148,17 @@ def poster_grid(movies, cols=5):
                 )
 
                 # Buttons
-                c1, c2, c3 = st.columns(3)
-
-                # ▶ VIEW
-                with c1:
-                    if st.button("▶", key=f"view_{m['tmdb_id']}"):
-                        api_post("/user/view", m["title"])
-                        st.session_state.selected_movie = m["tmdb_id"]
+                c1, c2, c3 = st.columns(2)
+                
 
                 # 🔖 WATCHLIST
-                with c2:
+                with c1:
                     if st.button("🔖", key=f"watch_{m['tmdb_id']}"):
                         api_post("/user/watchlist", m["title"])
                         st.toast("Added to Watchlist")
 
                 # ❤️ LIKE
-                with c3:
+                with c2:
                     if st.button("❤️", key=f"like_{m['tmdb_id']}"):
                         api_post("/user/like", m["title"])
 
