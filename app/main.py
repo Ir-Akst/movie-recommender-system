@@ -59,15 +59,19 @@ app.add_middleware(
 def load_data():
     if not os.path.exists(DATA_FILE):
         return {"watchlist": [], "liked": []}
+
     with open(DATA_FILE, "r") as f:
-        return json.load(f)
+        data = json.load(f)
+
+    data.setdefault("watchlist", [])
+    data.setdefault("liked", [])
+
+    return data
+
 
 def save_data(data):
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
-
-user_data = load_data()
-
 # =========================
 # GLOBALS
 # =========================
@@ -157,13 +161,17 @@ def root():
 # =========================
 @app.get("/user/watchlist")
 def get_watchlist():
-    return user_data["watchlist"]
+    data = load_data()   
+    return data.get("watchlist", [])
 
 @app.post("/user/watchlist")
 def add_watchlist(movie: str):
-    if movie not in user_data["watchlist"]:
-        user_data["watchlist"].append(movie)
-        save_data(user_data)
+    data = load_data()   
+
+    if movie not in data["watchlist"]:
+        data["watchlist"].append(movie)
+        save_data(data)
+
     return {"status": "added"}
 
 # =========================
@@ -171,13 +179,17 @@ def add_watchlist(movie: str):
 # =========================
 @app.get("/user/liked")
 def get_liked():
-    return user_data["liked"]
+    data = load_data()
+    return data.get("liked", [])
 
 @app.post("/user/like")
 def like_movie(movie: str):
-    if movie not in user_data["liked"]:
-        user_data["liked"].append(movie)
-        save_data(user_data)
+    data = load_data()
+
+    if movie not in data["liked"]:
+        data["liked"].append(movie)
+        save_data(data)
+
     return {"status": "liked"}
 
 # =========================
