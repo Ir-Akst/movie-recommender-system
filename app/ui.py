@@ -2,16 +2,12 @@ import requests
 import streamlit as st
 import os
 import time
-from dotenv import load_dotenv
 
 # =========================
 # ENV
 # =========================
 load_dotenv()
-API_BASE = os.getenv(
-    "API_BASE",
-    "https://your-render-backend.onrender.com"
-)
+API_BASE = "https://movie-recommender-system-1-2kes.onrender.com"
 TMDB_IMG = "https://image.tmdb.org/t/p/w342"
 
 # =========================
