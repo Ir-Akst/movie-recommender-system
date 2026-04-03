@@ -148,7 +148,7 @@ def poster_grid(movies, cols=5):
                 )
 
                 # Buttons
-                c1, c2, c3 = st.columns(2)
+                c1, c2= st.columns(2)
                 
 
                 # 🔖 WATCHLIST
