@@ -204,7 +204,10 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
+    
+@app.get("/user/watchlist")
+def get_watchlist(user_id: str):
+    return user_data.get(user_id, {}).get("watchlist", [])
 
 # 🔥 HOME ROUTE (FIXED)
 @app.get("/home")
