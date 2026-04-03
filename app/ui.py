@@ -22,14 +22,18 @@ USER_ID = st.session_state.user_id
 st.set_page_config(page_title="AI Movie Recommender", layout="wide")
 
 # =========================
-# CSS
+# CSS (🔥 FIXED + IMPROVED)
 # =========================
 st.markdown("""
 <style>
+
+/* 🌌 Background */
 .stApp {
     background: linear-gradient(135deg, #0f172a, #020617);
     color: white;
 }
+
+/* Header */
 .title {
     text-align: center;
     font-size: 42px;
@@ -40,32 +44,74 @@ st.markdown("""
     color: #94a3b8;
     margin-bottom: 25px;
 }
+
+/* Card */
 .card {
     background: #0f172a;
     border-radius: 16px;
     padding: 10px;
     transition: 0.3s ease;
     position: relative;
+    overflow: hidden;
 }
+
 .card:hover {
     transform: translateY(-8px) scale(1.03);
     box-shadow: 0 12px 25px rgba(0,0,0,0.6);
 }
+
+/* Poster container */
+.poster {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Poster image */
+.poster img {
+    width: 100%;
+    border-radius: 12px;
+    transition: 0.4s ease;
+}
+
+.card:hover .poster img {
+    transform: scale(1.08);
+}
+
+/* ⭐ FIXED RATING */
 .rating {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    background: #facc15;
+    top: 8px;
+    left: 8px;
+    background: rgba(250, 204, 21, 0.95);
     color: black;
     font-size: 12px;
-    padding: 3px 6px;
+    font-weight: bold;
+    padding: 4px 6px;
     border-radius: 6px;
+    z-index: 10; /* 🔥 FIX */
+    backdrop-filter: blur(6px);
 }
+
+/* Title */
 .movie-title {
     font-size: 14px;
     font-weight: 600;
     margin-top: 8px;
 }
+
+/* Buttons */
+.stButton>button {
+    border-radius: 8px;
+    padding: 4px;
+    font-size: 12px;
+}
+
+/* spacing */
+.block-container {
+    padding-top: 1rem;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -76,7 +122,7 @@ st.markdown('<div class="title">🎬 AI Movie Recommender</div>', unsafe_allow_h
 st.markdown('<div class="subtitle">Discover movies with AI + personalization</div>', unsafe_allow_html=True)
 
 # =========================
-# API HELPERS (FIXED)
+# API HELPERS
 # =========================
 def api_get(path, params=None):
     try:
@@ -95,8 +141,8 @@ def api_post(path, movie):
             params={"user_id": USER_ID, "movie": movie},
             timeout=5
         )
-    except requests.exceptions.RequestException as e:
-        st.warning(f"Action failed: {e}")
+    except:
+        pass
 
 # =========================
 # STATE
@@ -105,7 +151,7 @@ if "selected_movie" not in st.session_state:
     st.session_state.selected_movie = None
 
 # =========================
-# POSTER GRID (SAFE VERSION)
+# POSTER GRID (🔥 FIXED)
 # =========================
 def poster_grid(movies, cols=5):
     if not movies:
@@ -122,17 +168,28 @@ def poster_grid(movies, cols=5):
                 title = m.get("title", "Unknown")
                 tmdb_id = m.get("tmdb_id", str(uuid.uuid4()))
                 rating = m.get("vote_average")
+                poster = m.get("poster_url")
+
+                # 🎬 Poster with rating inside
+                st.markdown('<div class="poster">', unsafe_allow_html=True)
 
                 if rating:
-                    st.markdown(f'<div class="rating">⭐ {round(rating,1)}</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="rating">⭐ {round(rating,1)}</div>',
+                        unsafe_allow_html=True
+                    )
 
-                if m.get("poster_url"):
-                    st.image(m["poster_url"])
+                if poster:
+                    st.image(poster)
                 else:
                     st.write("No Image")
 
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # Title
                 st.markdown(f'<div class="movie-title">{title}</div>', unsafe_allow_html=True)
 
+                # Buttons
                 c1, c2, c3, c4 = st.columns(4)
 
                 with c1:
@@ -245,7 +302,7 @@ def show_details(movie_id):
         poster_grid(movies)
 
 # =========================
-# ROUTER
+# ROUTING
 # =========================
 if st.session_state.selected_movie:
     show_details(st.session_state.selected_movie)
