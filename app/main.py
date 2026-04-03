@@ -43,6 +43,7 @@ DF_PATH = os.getenv("DF_PATH", os.path.join(ROOT_DIR, "model/df.pkl"))
 INDICES_PATH = os.getenv("INDICES_PATH", os.path.join(ROOT_DIR, "model/indices.pkl"))
 TFIDF_MATRIX_PATH = os.getenv("TFIDF_MATRIX_PATH", os.path.join(ROOT_DIR, "model/tfidf_matrix.pkl"))
 TFIDF_PATH = os.getenv("TFIDF_PATH", os.path.join(ROOT_DIR, "model/tfidf.pkl"))
+USER_FILE = os.path.join(BASE_DIR, "data", "user_data.json")
 
 
 # =========================
