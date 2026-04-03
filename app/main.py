@@ -250,10 +250,6 @@ def add_watchlist(user_id: str, movie: str):
 def like_movie(user_id: str, movie: str):
     user_data.setdefault(user_id, {}).setdefault("liked", []).append(movie)
     return {"status": "liked"}
-@app.post("/user/view")
-def view_movie(user_id: str, movie: str):
-    user_data.setdefault(user_id, {}).setdefault("recent", []).append(movie)
-    return {"status": "viewed"}
 
 # 🔥 SEARCH ROUTE (REQUIRED FOR UI)
 @app.get("/tmdb/search")
