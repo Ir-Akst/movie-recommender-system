@@ -37,7 +37,8 @@ INDICES_PATH = os.path.join(ROOT_DIR, "model/indices.pkl")
 TFIDF_MATRIX_PATH = os.path.join(ROOT_DIR, "model/tfidf_matrix.pkl")
 TFIDF_PATH = os.path.join(ROOT_DIR, "model/tfidf.pkl")
 
-DATA_FILE = os.path.join(BASE_DIR, "user_data.json")
+DATA_FILE = os.path.join(BASE_DIR, "..", "data", "user_data.json")
+DATA_FILE = os.path.abspath(DATA_FILE)
 
 # =========================
 # FASTAPI APP
