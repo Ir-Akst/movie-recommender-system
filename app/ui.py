@@ -3,10 +3,7 @@ import streamlit as st
 import os
 import time
 
-# =========================
-# ENV
-# =========================
-load_dotenv()
+
 API_BASE = "https://movie-recommender-system-1-2kes.onrender.com"
 TMDB_IMG = "https://image.tmdb.org/t/p/w342"
 
